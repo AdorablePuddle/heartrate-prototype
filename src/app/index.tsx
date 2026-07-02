@@ -1,17 +1,38 @@
-import { Text, View, StyleSheet } from "react-native";
+import { useEffect } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Camera, useCameraDevice, useCameraPermission } from "react-native-vision-camera";
 
 export default function Index() {
-  return (
-    <View style={styles.container}>
-      <Text>Edit src/app/index.tsx to edit this screen.</Text>
-    </View>
-  );
+	const { hasPermission, requestPermission } = useCameraPermission();
+	const device = useCameraDevice("back");
+
+	useEffect(() => {
+		if (!hasPermission) requestPermission();
+	}, [hasPermission, requestPermission]);
+
+	
+
+	if (device)
+		return (
+			<Camera 
+				style = {{flex : 1}}
+				isActive = {true}
+				device = "back"
+			/>
+		);
+	else {
+		return (
+			<View style = {styles.container}>
+				<Text>Camera not found :(</Text>
+			</View>
+		)
+	}
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+	container: {
+		flex: 1,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 });

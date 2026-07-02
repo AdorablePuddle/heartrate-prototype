@@ -18,7 +18,11 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.adorablestpuddle.heartrateprototype"
+      "package": "com.adorablestpuddle.heartrateprototype",
+      "permissions": [
+        "android.permission.CAMERA", 
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
