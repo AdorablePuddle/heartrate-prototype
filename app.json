@@ -20,7 +20,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.adorablestpuddle.heartrateprototype",
       "permissions": [
-        "android.permission.CAMERA", 
+        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -36,6 +36,14 @@
           "backgroundColor": "#208AEF",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android" : {
+            "minSdkVersion" : 26
+          }
         }
       ]
     ],

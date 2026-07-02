@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { Camera, useCameraDevice, useCameraPermission } from "react-native-vision-camera";
+import { Camera, useCameraDevice, useCameraPermission, useFrameOutput } from "react-native-vision-camera";
 
 export default function Index() {
 	const { hasPermission, requestPermission } = useCameraPermission();
@@ -10,7 +10,17 @@ export default function Index() {
 		if (!hasPermission) requestPermission();
 	}, [hasPermission, requestPermission]);
 
-	
+	const frameOutput = useFrameOutput({
+		pixelFormat : "rgb",
+		onFrame(frame) {
+			'worklet'
+			try {
+				const buffer = frame.getPixelBuffer();
+			} finally {
+				frame.dispose();
+			}
+		}
+	})
 
 	if (device)
 		return (
@@ -18,6 +28,7 @@ export default function Index() {
 				style = {{flex : 1}}
 				isActive = {true}
 				device = "back"
+				outputs = {[frameOutput]}
 			/>
 		);
 	else {
@@ -34,5 +45,8 @@ const styles = StyleSheet.create({
 		flex: 1,
 		alignItems: "center",
 		justifyContent: "center",
+	},
+	camera_hider: {
+		
 	},
 });
