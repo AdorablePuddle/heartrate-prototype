@@ -157,13 +157,14 @@ export default function Index() {
 			// SKIP IF EMPTY
 			if (data.length == 0) return;
 			const sorted_data = data.sort((a, b) => a[1] - b[1])
-			const startTime = sorted_data[0][1];
 			const endTime = sorted_data[sorted_data.length - 1][1];
+			const startTime = (sorted_data[0][1] >= endTime - 5000)? sorted_data[0][1] : endTime - 5000;
 			const timeTaken = endTime - startTime; // in MS
 			const timeTakenMinutes = (timeTaken / 1000) / 60;
 
 			var localPeaks = 0;
 			for (var i = 1; i + 1 < sorted_data.length; i += 1) {
+				if (sorted_data[i][1] < startTime) continue;
 				localPeaks += (sorted_data[i][0] > sorted_data[i + 1][0] && sorted_data[i][0] > sorted_data[i - 1][0])? 1 : 0;
 			}
 
