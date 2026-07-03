@@ -157,6 +157,12 @@ export default function Index() {
 			// SKIP IF EMPTY
 			if (data.length == 0) return;
 			
+			// SKIP IF NOT MEASURING
+			if (!isMeasuring) {
+				setCurrentHeartrate(0);
+				return;
+			}
+
 			// Naive Peak Analysis:
 			const sorted_data = data.sort((a, b) => a[1] - b[1])
 			const endTime = sorted_data[sorted_data.length - 1][1];
