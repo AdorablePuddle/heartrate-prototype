@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { Camera, useAsyncRunner, useCameraDevice, useCameraPermission, useFrameOutput } from "react-native-vision-camera";
 import { createSynchronizable } from "react-native-worklets";
@@ -7,9 +7,11 @@ export default function Index() {
 	const [isMeasuring, setIsMeasuring] = useState(false);
 	const [currentHeartrate, setCurrentHeartrate] = useState(0);
 	
+	/*
 	const frameValues = useRef<number[]>([]);
 	const timestamps  = useRef<number[]>([]);
-
+	*/
+	
 	const synchronizableFrameValues = createSynchronizable<number[]>([]);
 	const synchronizableTimestamps  = createSynchronizable<number[]>([]);
 
@@ -21,6 +23,7 @@ export default function Index() {
 		if (!hasPermission) requestPermission();
 	}, [hasPermission, requestPermission]);
 
+	/*
 	const measurement = (avgRed : number, frameTiming : number) => {
 		'worklet'
 		frameValues.current.push(avgRed);
@@ -31,6 +34,7 @@ export default function Index() {
 			timestamps.current.shift();
 		}
 	}
+	*/
 
 	/*
 	const frameOutput = useFrameOutput({
