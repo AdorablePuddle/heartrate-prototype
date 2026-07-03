@@ -145,6 +145,7 @@ export default function Index() {
 		}
 	});
 
+	// Calculating Heart Rate
 	useEffect(() => {
 		const intervalId = setInterval(() => {
 			const currentFrameValues = synchronizableFrameValues.getBlocking();
@@ -153,9 +154,10 @@ export default function Index() {
 			synchronizableTimestamps.setBlocking([]);
 
 			const data = currentFrameValues.map((e, i) => [e, currentTimestamps[i]]);
-			// Naive Peak Analysis:
 			// SKIP IF EMPTY
 			if (data.length == 0) return;
+			
+			// Naive Peak Analysis:
 			const sorted_data = data.sort((a, b) => a[1] - b[1])
 			const endTime = sorted_data[sorted_data.length - 1][1];
 			const startTime = (sorted_data[0][1] >= endTime - 5000)? sorted_data[0][1] : endTime - 5000;
