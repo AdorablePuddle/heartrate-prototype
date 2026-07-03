@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import { Camera, useAsyncRunner, useCameraDevice, useCameraPermission, useFrameOutput } from "react-native-vision-camera";
+import { useAsyncRunner, useCamera, useCameraDevice, useCameraPermission, useFrameOutput } from "react-native-vision-camera";
 import { createSynchronizable } from "react-native-worklets";
 
 export default function Index() {
@@ -12,7 +12,9 @@ export default function Index() {
 	const timestamps  = useRef<number[]>([]);
 	*/
 	
-	const synchronizableFrameValues = createSynchronizable<number[]>([]);
+	const synchronizableRFrameValues = createSynchronizable<number[]>([]);
+	const synchronizableGFrameValues = createSynchronizable<number[]>([]);
+	const synchronizableBFrameValues = createSynchronizable<number[]>([]);
 	const synchronizableTimestamps  = createSynchronizable<number[]>([]);
 
 	const { hasPermission, requestPermission } = useCameraPermission();
@@ -108,34 +110,37 @@ export default function Index() {
 	});
 	*/
 
-	const measureToggler = () => {
-		setIsMeasuring(!isMeasuring);
-	}
-
 	const frameOutput = useFrameOutput({
 		pixelFormat : "rgb",
 		onFrame(frame) {
 			'worklet'
 			try {
 				const frameTiming = Date.now();
-				const frameValuesBlocking = synchronizableFrameValues.getBlocking();
+				const rFrameValuesBlocking = synchronizableRFrameValues.getBlocking();
+				const gFrameValuesBlocking = synchronizableGFrameValues.getBlocking();
+				const bFrameValuesBlocking = synchronizableBFrameValues.getBlocking();
 				const timestampsBlocking  = synchronizableTimestamps.getBlocking();
 				const buffer = frame.getPixelBuffer();
 				const pixels = new Uint8Array(buffer);
 
 				// const firstPixel = {a: pixels[3], r : pixels[2], g : pixels[1], b : pixels[0]}
 				var totalRed = 0;
+				var totalGreen = 0;
+				var totalBlue = 0;
 				var total = 0;
 				for (var i = 0; i + 3 < pixels.length; i += 4) {
-					const currentRed = pixels[i + 2];
 					total += 1;
-					totalRed += currentRed;
+					totalRed += pixels[i + 2];
+					totalGreen += pixels[i + 1];
+					totalBlue += pixels[i + 0];
 				}
 
 				// console.log(`Avg Red: ${(total > 0)? totalRed / total : 0}`)
 				// setCurrentAvg((total > 0)? totalRed / total : 0);
 
-				synchronizableFrameValues.setBlocking([...frameValuesBlocking, (total > 0)? totalRed / total : 0]);
+				synchronizableRFrameValues.setBlocking([...rFrameValuesBlocking, (total > 0)? totalRed / total : 0]);
+				synchronizableGFrameValues.setBlocking([...gFrameValuesBlocking, (total > 0)? totalGreen / total : 0]);
+				synchronizableBFrameValues.setBlocking([...bFrameValuesBlocking, (total > 0)? totalBlue / total : 0]);
 				synchronizableTimestamps.setBlocking([...timestampsBlocking, frameTiming]);
 			} catch (error) {
 				console.error(`Frame Processing Error: ${error}`)
@@ -148,12 +153,16 @@ export default function Index() {
 	// Calculating Heart Rate
 	useEffect(() => {
 		const intervalId = setInterval(() => {
-			const currentFrameValues = synchronizableFrameValues.getBlocking();
+			const currentRFrameValues = synchronizableRFrameValues.getBlocking();
+			const currentGFrameValues = synchronizableGFrameValues.getBlocking();
+			const currentBFrameValues = synchronizableBFrameValues.getBlocking();
 			const currentTimestamps  = synchronizableTimestamps.getBlocking();
-			synchronizableFrameValues.setBlocking([]);
+			synchronizableRFrameValues.setBlocking([]);
+			synchronizableGFrameValues.setBlocking([]);
+			synchronizableBFrameValues.setBlocking([]);
 			synchronizableTimestamps.setBlocking([]);
 
-			const data = currentFrameValues.map((e, i) => [e, currentTimestamps[i]]);
+			const data = currentRFrameValues.map((e, i) => [e, currentTimestamps[i]]);
 			// SKIP IF EMPTY
 			if (data.length == 0) return;
 			
@@ -185,17 +194,27 @@ export default function Index() {
 		return () => clearInterval(intervalId);
 	});
 
+	const camera = useCamera({
+		isActive : true,
+		device : device ?? "back",
+		outputs : [frameOutput],
+		constraints : [
+			{ fps : 30 }
+		]
+	})
+
+	const measureToggler = () => {
+		if (!isMeasuring) {
+			camera?.setTorchMode("on");
+		} else {
+			camera?.setTorchMode("off");
+		}
+		setIsMeasuring(!isMeasuring);
+	}
+
 	if (device)
 		return (
 			<View style = {styles.container}>
-				<View style = {styles.camera_container}>
-					<Camera 
-						style = {styles.camera_hider}
-						isActive = {isMeasuring}
-						device = {device}
-						outputs = {[frameOutput]}
-					/>
-				</View>
 				<View style = {styles.data_container}>
 					<Text style = {styles.data_title}>Heartrate Monitor Prototype</Text>
 					<Button
@@ -215,6 +234,17 @@ export default function Index() {
 		)
 	}
 }
+
+/*
+	<View style = {styles.camera_container}>
+		<Camera 
+			style = {styles.camera_hider}
+			isActive = {isMeasuring}
+			device = {device}
+			outputs = {[frameOutput]}
+		/>
+	</View>
+*/
 
 const styles = StyleSheet.create({
 	container: {
