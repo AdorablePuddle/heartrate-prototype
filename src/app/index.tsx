@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 import { Camera, useAsyncRunner, useCameraDevice, useCameraPermission, useFrameOutput } from "react-native-vision-camera";
 import { createSynchronizable } from "react-native-worklets";
+import { CartesianChart, Line } from "victory-native";
 
 export default function Index() {
 	const [isMeasuring, setIsMeasuring] = useState(false);
 	const [currentHeartrate, setCurrentHeartrate] = useState(0);
+	const [graphData, setGraphData] = useState<{timestamp : number, frameValue : number}[]>([]);
 	
 	/*
 	const frameValues = useRef<number[]>([]);
@@ -157,6 +159,17 @@ export default function Index() {
 			// SKIP IF EMPTY
 			if (data.length == 0) return;
 			const sorted_data = data.sort((a, b) => a[1] - b[1])
+			
+			// Display Data:
+			const displayData = data.map((e, i) => {
+				return {
+					timestamp : e[1],
+					frameValue : e[0],
+				};
+			});
+			setGraphData(displayData);
+
+			// Calculation
 			const endTime = sorted_data[sorted_data.length - 1][1];
 			const startTime = (sorted_data[0][1] >= endTime - 5000)? sorted_data[0][1] : endTime - 5000;
 			const timeTaken = endTime - startTime; // in MS
@@ -197,6 +210,19 @@ export default function Index() {
 					<Text style = {styles.data_text}>Note: To begin measurement, cover the back camera with your index finger lightly. Do not press it too tightly, but not too lightly either.</Text>
 					<Text style = {styles.data_title}>BPM: {Math.round(currentHeartrate)}</Text>
 				</View>
+				<View style = {styles.graph_container}>
+					<CartesianChart
+						data = {graphData}
+						xKey = "timestamp"
+						yKeys = {["frameValue"]}
+					>
+						{
+							({points}) => (
+								<Line points = {points.frameValue} color = "red" strokeWidth = {3}/>
+							)
+						}
+					</CartesianChart>
+				</View>
 			</View>
 		);
 	else {
@@ -224,7 +250,7 @@ const styles = StyleSheet.create({
 		opacity : 0,
 	},
 	data_container: {
-		flex : 1,
+		flex : 2,
 		alignItems : "center",
 		justifyContent : "center",
 	},
@@ -239,5 +265,9 @@ const styles = StyleSheet.create({
 		color: "#5BCEFA",
 		fontStyle : "italic",
 		fontSize : 12,
+	},
+	graph_container: {
+		flex : 1,
+		height: 100
 	}
 });
