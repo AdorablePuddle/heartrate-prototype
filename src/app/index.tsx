@@ -162,7 +162,6 @@ export default function Index() {
 			synchronizableTimestamps.setBlocking([]);
 
 			const data = currentFrameValues.map((e, i) => [e, currentTimestamps[i]]);
-			// Naive Peak Analysis:
 			// SKIP IF EMPTY
 			if (data.length == 0) return;
 			const sorted_data = data.sort((a, b) => a[1] - b[1])
@@ -176,6 +175,11 @@ export default function Index() {
 			});
 			setGraphData(displayData);
 
+			// Signal Detrend
+			// Subtract each element of the data by the rolling average at that point (1 second window).
+			// Step 1: Calculating rolling average
+
+			// Naive Peak Analysis:
 			// Calculation
 			const endTime = sorted_data[sorted_data.length - 1][1];
 			const startTime = (sorted_data[0][1] >= endTime - 5000)? sorted_data[0][1] : endTime - 5000;
