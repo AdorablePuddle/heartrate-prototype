@@ -126,18 +126,25 @@ export default function Index() {
 				const pixels = new Uint8Array(buffer);
 
 				// const firstPixel = {a: pixels[3], r : pixels[2], g : pixels[1], b : pixels[0]}
-				var totalRed = 0;
+				// Luma Preprocessing: Seeing Red: PPG Biometrics Using Smartphone Cameras - Giulio Lovisotto, Henry Turner, Simon Eberz and Ivan Martinovic
+				const redMult   = 0.299
+				const greenMult = 0.587
+				const blueMult  = 0.114 
+
+				var pixelLuma = 0;
 				var total = 0;
 				for (var i = 0; i + 3 < pixels.length; i += 4) {
-					const currentRed = pixels[i + 2];
+					const currentRed   = pixels[i + 2];
+					const currentGreen = pixels[i + 1];
+					const currentBlue  = pixels[i]
 					total += 1;
-					totalRed += currentRed;
+					pixelLuma += currentRed * redMult + currentGreen * greenMult + currentBlue * blueMult;
 				}
 
 				// console.log(`Avg Red: ${(total > 0)? totalRed / total : 0}`)
 				// setCurrentAvg((total > 0)? totalRed / total : 0);
 
-				synchronizableFrameValues.setBlocking([...frameValuesBlocking, (total > 0)? totalRed / total : 0]);
+				synchronizableFrameValues.setBlocking([...frameValuesBlocking, (total > 0)? pixelLuma / total : 0]);
 				synchronizableTimestamps.setBlocking([...timestampsBlocking, frameTiming]);
 			} catch (error) {
 				console.error(`Frame Processing Error: ${error}`)
