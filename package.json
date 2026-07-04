@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo/ui": "~57.0.1",
     "@shopify/react-native-skia": "^2.6.9",
+    "elegant-queue": "^1.0.9",
     "expo": "~57.0.1",
     "expo-build-properties": "~57.0.2",
     "expo-constants": "~57.0.2",

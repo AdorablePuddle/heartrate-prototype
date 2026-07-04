@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
-import { Camera, useAsyncRunner, useCameraDevice, useCameraPermission, useFrameOutput } from "react-native-vision-camera";
+import { Camera, useAsyncRunner, useCamera, useCameraDevice, useCameraPermission, useFrameOutput } from "react-native-vision-camera";
 import { createSynchronizable } from "react-native-worklets";
 import { CartesianChart, Line } from "victory-native";
 
@@ -110,10 +110,6 @@ export default function Index() {
 	});
 	*/
 
-	const measureToggler = () => {
-		setIsMeasuring(!isMeasuring);
-	}
-
 	const frameOutput = useFrameOutput({
 		pixelFormat : "rgb",
 		onFrame(frame) {
@@ -164,6 +160,12 @@ export default function Index() {
 			const data = currentFrameValues.map((e, i) => [e, currentTimestamps[i]]);
 			// SKIP IF EMPTY
 			if (data.length == 0) return;
+
+			// SKIP IF NOT MEASURING
+			if (!isMeasuring) {
+				setCurrentHeartrate(0);
+				return;
+			}
 			const sorted_data = data.sort((a, b) => a[1] - b[1])
 			
 			// Display Data:
@@ -200,6 +202,24 @@ export default function Index() {
 
 		return () => clearInterval(intervalId);
 	});
+
+	const camera = useCamera({
+		isActive : true,
+		device : device ?? "back",
+		outputs : [frameOutput],
+		constraints : [
+			{ fps : 240 }
+		]
+	})
+
+	const measureToggler = () => {
+		if (!isMeasuring) {
+			camera?.setTorchMode("on");
+		} else {
+			camera?.setTorchMode("off");
+		}
+		setIsMeasuring(!isMeasuring);
+	}
 
 	if (device)
 		return (
